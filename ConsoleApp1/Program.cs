@@ -59,6 +59,41 @@ class Program
         }
 
         Console.WriteLine($"Gata! Am adaugat {cnt} items. Vezi Catalog - Items.");
+
+        await AddUserProperty(client, "FirstName", "string");
+        await AddUserProperty(client, "LastName", "string");
+        await AddUserProperty(client, "Email", "string");
+        await AddUserProperty(client, "Age", "int");
+        await AddUserProperty(client, "Country", "string");
+
+        var random = new Random();
+        var firstNames = new[] { "Ana", "Mihai", "Ioana", "Andrei", "Elena", "Radu", "Maria", "Vlad", "Carmen", "Alex", "Stefania", "Bogdan", "Dan", "Cristina", "Toma", "Andrada", "Anca", "Edi", "Matei", "Marius" };
+        var lastNames = new[] { "Popescu", "Ionescu", "Georgescu", "Dumitrescu", "Stan", "Tudor", "Rusu", "Marin", "Enache", "Iliescu", "Apostol", "Tanasescu", "Pana", "Gheorghe", "Stanila", "Catana", "Mihai", "Marinescu", "Enachescu", "Ilie" };
+        var countries = new[] { "Romania", "Italy", "France", "Germany", "Spain" };
+
+        for (int i = 1; i <= 20; i++)
+        {
+            string userId = $"user-{i}";
+            string firstName = firstNames[random.Next(firstNames.Length)];
+            string lastName = lastNames[random.Next(lastNames.Length)];
+            string email = $"{firstName.ToLower()}.{lastName.ToLower()}@example.com";
+            int age = random.Next(18, 60);
+            string country = countries[random.Next(countries.Length)];
+
+            var userValues = new Dictionary<string, object>
+            {
+                ["FirstName"] = firstName,
+                ["LastName"] = lastName,
+                ["Email"] = email,
+                ["Age"] = age,
+                ["Country"] = country
+            };
+
+            await client.SendAsync(new SetUserValues(userId, userValues, cascadeCreate: true));
+            Console.WriteLine($"Utilizator adaugat: {firstName} {lastName} ({email})");
+        }
+
+        Console.WriteLine("Toti utilizatorii au fost adaugti!");
     }
 
     static async Task AddProperty(RecombeeClient client, string name, string type)
@@ -71,6 +106,19 @@ class Program
         catch (ResponseException ex) when (ex.StatusCode == HttpStatusCode.Conflict)
         {
             Console.WriteLine($"AddItemProperty exista: {name} (ignora)");
+        }
+    }
+
+    static async Task AddUserProperty(RecombeeClient client, string name, string type)
+    {
+        try
+        {
+            await client.SendAsync(new AddUserProperty(name, type));
+            Console.WriteLine($"AddUserProperty OK: {name} ({type})");
+        }
+        catch (ResponseException ex) when (ex.StatusCode == HttpStatusCode.Conflict)
+        {
+            Console.WriteLine($"AddUserProperty exista: {name} (ignora)");
         }
     }
 }
